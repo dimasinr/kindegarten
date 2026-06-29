@@ -1,0 +1,276 @@
+{% extends 'monitoring/base.html' %}
+
+{% block title %}Daftar Siswa{% endblock %}
+
+{% block extra_css %}
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    max-width: 500px;
+}
+
+.search-input {
+    flex-grow: 1;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px 0 0 8px;
+    font-size: 14px;
+    background-color: white;
+    outline: none;
+    height: 46px;
+}
+
+.search-btn {
+    padding: 0 24px;
+    background-color: var(--primary-light);
+    color: white;
+    border: none;
+    border-radius: 0 8px 8px 0;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    height: 46px;
+    transition: background-color 0.2s;
+}
+
+.search-btn:hover {
+    background-color: #2563eb;
+}
+
+/* Cards Grid */
+.student-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.student-card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.student-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.student-img-container {
+    width: 110px;
+    min-width: 110px;
+    background-color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    border-right: 1px solid var(--border);
+}
+
+.student-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.student-img-placeholder {
+    font-size: 40px;
+    color: var(--text-muted);
+}
+
+.student-details {
+    padding: 16px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.student-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.info-row {
+    font-size: 13px;
+    margin-bottom: 4px;
+    color: var(--text-main);
+    display: flex;
+    justify-content: space-between;
+}
+
+.info-label {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.info-val {
+    font-weight: 600;
+    text-align: right;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-aktif {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-nonaktif {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <form method="GET" action="{% url 'siswa' %}" class="search-container">
+        <input type="text" name="search" class="search-input" placeholder="Cari Pengajuan..." value="{{ search_query }}">
+        <button type="submit" class="search-btn">Pencarian</button>
+    </form>
+    
+    <button class="btn btn-primary" onclick="openModal()">
+        <i class="fa-solid fa-plus"></i>
+        <span>Tambah Data</span>
+    </button>
+</div>
+
+<!-- Grid List of Students -->
+<div class="student-grid">
+    {% for murid in murids %}
+        <div class="student-card">
+            <div class="student-img-container">
+                {% if murid.foto %}
+                    <img src="{{ murid.foto.url }}" alt="{{ murid.name }}" class="student-img">
+                {% else %}
+                    <div class="student-img-placeholder">
+                        <i class="fa-solid fa-user-ninja"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="student-details">
+                <div>
+                    <h3 class="student-name">{{ murid.name }}</h3>
+                    <div class="info-row">
+                        <span class="info-label">Jenis Kelamin:</span>
+                        <span class="info-val">{{ murid.jenis_kelamin }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Tanggal Lahir:</span>
+                        <span class="info-val">{{ murid.tanggal_lahir|date:"Y-m-d" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Kelas:</span>
+                        <span class="info-val">{{ murid.kelas }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Nilai Rata-rata:</span>
+                        <span class="info-val">{{ murid.rata_rata_nilai }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Wali:</span>
+                        <span class="info-val">{{ murid.ortu.name|upper }}</span>
+                    </div>
+                </div>
+                <div style="margin-top: 12px;">
+                    <span class="status-badge {% if murid.status %}status-aktif{% else %}status-nonaktif{% endif %}">
+                        Status: {% if murid.status %}Aktif{% else %}Tidak Aktif{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted); background: white; border-radius: 12px; border: 1px solid var(--border);">
+            <i class="fa-solid fa-folder-open" style="font-size: 48px; margin-bottom: 12px; display: block;"></i>
+            <span>Tidak ada data murid ditemukan.</span>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Tambah Murid Modal -->
+<div class="modal" id="tambahMuridModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Tambah Data Siswa</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <form action="{% url 'buat_anak' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="name">Nama Murid:</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Nama Lengkap" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="jenis_kelamin">Jenis Kelamin:</label>
+                    <select id="jenis_kelamin" name="jenis_kelamin" class="form-control" required>
+                        <option value="Laki-Laki">Laki-Laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="tanggal_lahir">Tanggal Lahir:</label>
+                    <input type="date" id="tanggal_lahir" name="tanggal_lahir" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="kelas">Kelas:</label>
+                    <input type="text" id="kelas" name="kelas" class="form-control" placeholder="Contoh: 1, 2, A, B" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="foto">Foto Murid:</label>
+                    <input type="file" id="foto" name="foto" class="form-control" accept="image/*" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
+                <button type="submit" class="btn btn-success">Kirim</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openModal() {
+        document.getElementById('tambahMuridModal').classList.add('active');
+    }
+    function closeModal() {
+        document.getElementById('tambahMuridModal').classList.remove('active');
+    }
+    // Close modal if user clicks outside of modal content
+    window.onclick = function(event) {
+        let modal = document.getElementById('tambahMuridModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+{% endblock %}
